@@ -1,0 +1,1085 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualizza file GLB con Animazioni e Distinta Base</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Roboto', sans-serif; 
+            color: #333;
+            transition: background-color 0.3s;
+        }
+        canvas { width: 100%; height: 100vh; }
+        
+        #animationContainer { 
+            position: absolute; 
+            left: 10px; 
+            z-index: 100; 
+            width: 250px;
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        #bomContainer { 
+            position: absolute; 
+            left: 10px; 
+            z-index: 100; 
+            width: 250px;
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        
+        #animationContainer.collapsed, #bomContainer.collapsed {
+            width: 40px;
+            left: 0;
+        }
+        
+        #animationContainer.collapsed .panel-content,
+        #bomContainer.collapsed .panel-content {
+            display: none;
+        }
+        
+        #animationContainer.collapsed .panel-header,
+        #bomContainer.collapsed .panel-header {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 12px 8px;
+            border-radius: 0 8px 8px 0;
+            height: 120px;
+            transform: rotate(180deg);
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            text-align: right;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: background 0.3s;
+        }
+        
+        .panel-header {
+            padding: 12px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            font-weight: 700;
+            user-select: none;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .panel-header:hover {
+            background: linear-gradient(135deg, #5aa0f2, #458acd);
+        }
+        
+        .panel-content {
+            padding: 12px;
+            max-height: 40vh;
+            overflow-y: auto;
+            display: block;
+        }
+        
+        .animation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .animation-list li {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            background: #f9f9f9;
+            margin-bottom: 4px;
+            transition: background 0.2s;
+        }
+        
+        .animation-list li:hover { background: #e0e0e0; }
+        .animation-list li.active { background: #cce5ff; font-weight: 700; }
+        
+        .bom-item {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+        }
+        
+        .bom-button { 
+            flex-grow: 1;
+            padding: 8px 12px; 
+            cursor: pointer; 
+            border: none;
+            background: #f9f9f9;
+            border-radius: 5px;
+            text-align: left;
+            transition: background 0.2s;
+        }
+        
+        .bom-button:hover { background: #e0e0e0; }
+        .bom-button.selected { background: #ff9999; font-weight: 700; }
+        
+        .visibility-toggle {
+            width: 24px;
+            height: 24px;
+            margin-left: 8px;
+            cursor: pointer;
+            background: #ddd;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .visibility-toggle:hover { background: #ccc; }
+        .visibility-toggle.hidden { background: #ff9999; }
+        
+        #controlsBar {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 101;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            display: flex;
+            gap: 12px;
+            transition: background 0.3s;
+        }
+        
+        #controlsBar button {
+            width: 48px;
+            height: 48px;
+            font-size: 0;
+            border: none;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            box-shadow: none;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        
+        #controlsBar button:hover {
+            background: linear-gradient(135deg, #5aa0f2, #458acd);
+            transform: scale(1.1);
+        }
+
+        #controlsBar button:focus, 
+        #controlsBar button:active, 
+        #controlsBar button:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: linear-gradient(135deg, #4a90e2, #357abd) !important;
+        }
+
+        #controlsBar button svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        #topControls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        #topControls button {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            border: none;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            position: relative;
+        }
+
+        #topControls button:hover {
+            background: linear-gradient(135deg, #5aa0f2, #458acd);
+            transform: scale(1.1);
+        }
+
+        #topControls button:focus, 
+        #topControls button:active, 
+        #topControls button:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        #viewModeSelect, #themeSelect {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            text-align: center;
+        }
+
+        #viewModeSelect:hover, #themeSelect:hover {
+            background: linear-gradient(135deg, #5aa0f2, #458acd);
+            transform: scale(1.1);
+        }
+
+        #viewModeSelect option, #themeSelect option {
+            background: #357abd;
+            color: white;
+            font-size: 16px;
+        }
+
+        #lightSliderContainer {
+            position: absolute;
+            bottom: 60px;
+            display: none;
+            z-index: 101;
+            width: 20px;
+        }
+
+        #lightSlider {
+            -webkit-appearance: slider-vertical;
+            -moz-appearance: slider-vertical;
+            appearance: slider-vertical;
+            height: 100px;
+            width: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        #lightSlider:hover {
+            opacity: 1;
+        }
+
+        #lightSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #lightSlider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #bomSearch {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        body.dark-theme {
+            background-color: #1a1a1a;
+            color: #ddd;
+        }
+        body.dark-theme .panel {
+            background: rgba(40, 40, 40, 0.95);
+        }
+        body.dark-theme .animation-list li {
+            background: #333;
+            color: #ddd;
+        }
+        body.dark-theme .animation-list li:hover {
+            background: #444;
+        }
+        body.dark-theme .bom-button {
+            background: #333;
+            color: #ddd;
+        }
+        body.dark-theme .bom-button:hover {
+            background: #444;
+        }
+        body.dark-theme .visibility-toggle {
+            background: #555;
+        }
+        body.dark-theme .visibility-toggle:hover {
+            background: #666;
+        }
+        body.dark-theme #controlsBar,
+        body.dark-theme #topControls {
+            background: rgba(40, 40, 40, 0.95);
+        }
+        body.dark-theme #bomSearch {
+            background: #333;
+            color: #ddd;
+            border-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="controlsBar">
+        <button id="playAllButton" title="Esegui tutte">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button id="pauseButton" title="Pausa">
+            <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6zm8-14v14h4V5z"/></svg>
+        </button>
+        <button id="stopButton" title="Ferma">
+            <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+        </button>
+    </div>
+    <div id="animationContainer">
+        <div class="panel" id="animationPanel">
+            <div class="panel-header">Animazioni</div>
+            <div class="panel-content" id="animationControls">
+                <ul class="animation-list" id="animationList"></ul>
+            </div>
+        </div>
+    </div>
+    <div id="bomContainer">
+        <div class="panel" id="bomPanel">
+            <div class="panel-header">Distinta Base</div>
+            <div class="panel-content" id="bomControls">
+                <input type="text" id="bomSearch" placeholder="Cerca nella distinta base...">
+                <div id="bomList"></div>
+            </div>
+        </div>
+    </div>
+    <div id="topControls">
+        <button id="zoomInButton" title="Zoom In">+</button>
+        <button id="zoomOutButton" title="Zoom Out">-</button>
+        <button id="toggleLightButton" title="Intensità Luci">💡</button>
+        <button id="showAllButton" title="Mostra Tutti">👁️</button>
+        <select id="viewModeSelect" title="Modalità Vista">
+            <option value="solid" title="Solido">🟥</option>
+            <option value="wireframe" title="Wireframe">🕸️</option>
+            <option value="transparent" title="Trasparente">🔍</option>
+            <option value="reset" title="Reset">🔄</option>
+        </select>
+        <select id="themeSelect" title="Tema">
+            <option value="light" title="Chiaro">☀️</option>
+            <option value="dark" title="Scuro">🌙</option>
+        </select>
+    </div>
+    <div id="lightSliderContainer">
+        <input type="range" id="lightSlider" min="0" max="1" step="0.01" value="1">
+    </div>
+
+    <script src="three.min.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xdddddd);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = true;
+        controls.zoomSpeed = 1.0;
+        controls.minDistance = 0.1;
+        controls.maxDistance = 10;
+
+        const ambientLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+        ambientLight.position.set(0, 20, 0);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff);
+        directionalLight.position.set(0, 20, 10);
+        scene.add(directionalLight);
+
+        let mixer;
+        let actions = [];
+        let modelParts = [];
+        let model;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        const animationList = document.getElementById('animationList');
+        const bomList = document.getElementById('bomList');
+        let buttonMap = new Map();
+        let visibilityMap = new Map();
+        let isPlayingAll = false;
+        let activeAnimationItem = null;
+        let selectedParts = new Set();
+        let originalMaterials = new Map();
+        let modifiedMaterials = new Map();
+
+        function updatePanelPositions() {
+            const controlsBar = document.getElementById('controlsBar');
+            const animationContainer = document.getElementById('animationContainer');
+            const bomContainer = document.getElementById('bomContainer');
+            const margin = 10;
+
+            const controlsBarHeight = controlsBar.offsetHeight;
+            const animationTop = controlsBarHeight + margin + 10;
+
+            animationContainer.style.top = `${animationTop}px`;
+            if (!animationContainer.classList.contains('collapsed')) {
+                bomContainer.style.top = `${animationTop + animationContainer.offsetHeight + margin}px`;
+            } else if (!bomContainer.classList.contains('collapsed')) {
+                bomContainer.style.top = `${animationTop + 130 + margin}px`;
+            } else {
+                bomContainer.style.top = `${animationTop + 260 + margin}px`;
+            }
+        }
+
+        function updateLightSliderPosition() {
+            const lightButton = document.getElementById('toggleLightButton');
+            const lightSliderContainer = document.getElementById('lightSliderContainer');
+            const rect = lightButton.getBoundingClientRect();
+            const buttonCenterX = rect.left + (rect.width / 2);
+            const sliderWidth = lightSliderContainer.offsetWidth;
+            const sliderCenterOffset = sliderWidth / 2;
+            lightSliderContainer.style.left = `${buttonCenterX - sliderCenterOffset}px`;
+        }
+
+        function applyPreviousAnimations(index) {
+            if (!mixer || index < 0) return;
+
+            actions.forEach(actionGroup => actionGroup.forEach(action => action.stop()));
+            mixer.time = 0;
+
+            for (let i = 0; i < index; i++) {
+                const stepActions = actions[i];
+                stepActions.forEach(action => {
+                    action.reset();
+                    action.setLoop(THREE.LoopOnce);
+                    action.clampWhenFinished = true;
+                    action.play();
+                    mixer.update(action.getClip().duration);
+                });
+            }
+        }
+
+        function playAnimation(index, listItem) {
+            if (mixer && actions[index] && actions[index].length > 0) {
+                actions.forEach(actionGroup => actionGroup.forEach(action => action.stop()));
+                applyPreviousAnimations(index);
+
+                const listItems = animationList.getElementsByTagName('li');
+                if (listItems[index]) {
+                    if (activeAnimationItem) activeAnimationItem.classList.remove('active');
+                    listItems[index].classList.add('active');
+                    activeAnimationItem = listItems[index];
+                    listItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                const stepActions = actions[index];
+                let currentActionIndex = 0;
+                let parallelActions = [];
+
+                while (currentActionIndex < stepActions.length && stepActions[currentActionIndex].getClip().name.includes('/')) {
+                    parallelActions.push(stepActions[currentActionIndex]);
+                    currentActionIndex++;
+                }
+                if (currentActionIndex === 0 && stepActions.length > 0) {
+                    parallelActions.push(stepActions[0]);
+                    currentActionIndex++;
+                }
+
+                parallelActions.forEach(action => {
+                    action.reset();
+                    action.setLoop(THREE.LoopOnce);
+                    action.clampWhenFinished = true;
+                    action.play();
+                });
+
+                function playNextSequentialAction() {
+                    if (currentActionIndex >= stepActions.length) {
+                        return;
+                    }
+
+                    const action = stepActions[currentActionIndex];
+                    action.reset();
+                    action.setLoop(THREE.LoopOnce);
+                    action.clampWhenFinished = true;
+                    action.play();
+
+                    mixer.addEventListener('finished', function onFinished(e) {
+                        if (e.action === action) {
+                            mixer.removeEventListener('finished', onFinished);
+                            currentActionIndex++;
+                            playNextSequentialAction();
+                        }
+                    });
+                }
+
+                let finishedCount = 0;
+                parallelActions.forEach(action => {
+                    mixer.addEventListener('finished', function onParallelFinished(e) {
+                        if (e.action === action) {
+                            finishedCount++;
+                            mixer.removeEventListener('finished', onParallelFinished);
+                            if (finishedCount === parallelActions.length) {
+                                playNextSequentialAction();
+                            }
+                        }
+                    });
+                });
+
+                const mainAction = stepActions.find(action => !action.getClip().name.includes('_') && !action.getClip().name.includes('/')) || stepActions[0];
+                const animationName = mainAction.getClip().name;
+                window.parent.postMessage({ type: 'animationSelected', name: animationName }, '*');
+            }
+        }
+
+        function playAnimationByName(animationName) {
+            if (!mixer || !actions.length) return;
+            const stepNumber = animationName.replace('Step', '');
+            const listItems = animationList.getElementsByTagName('li');
+            let targetIndex = -1;
+
+            for (let i = 0; i < listItems.length; i++) {
+                if (listItems[i].dataset.stepNumber === stepNumber) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+
+            if (targetIndex !== -1) {
+                playAnimation(targetIndex, listItems[targetIndex]);
+            }
+        }
+
+        function stopAllAnimations() {
+            if (mixer) {
+                actions.forEach(actionGroup => actionGroup.forEach(action => action.stop()));
+                isPlayingAll = false;
+                if (activeAnimationItem) activeAnimationItem.classList.remove('active');
+                activeAnimationItem = null;
+                mixer.time = 0;
+            }
+        }
+
+        function pauseAnimations() {
+            if (mixer) {
+                actions.forEach(actionGroup => {
+                    actionGroup.forEach(action => {
+                        if (action.isRunning()) action.paused = true;
+                    });
+                });
+                isPlayingAll = false;
+            }
+        }
+
+        function playAllAnimationsSequentially() {
+            if (mixer && actions.length > 0 && !isPlayingAll) {
+                isPlayingAll = true;
+                let currentIndex = 0;
+                const listItems = animationList.getElementsByTagName('li');
+
+                function playNextStep() {
+                    if (currentIndex >= actions.length || !isPlayingAll) {
+                        isPlayingAll = false;
+                        if (activeAnimationItem) activeAnimationItem.classList.remove('active');
+                        activeAnimationItem = null;
+                        return;
+                    }
+
+                    const stepActions = actions[currentIndex];
+                    let actionIndex = 0;
+                    let parallelActions = [];
+
+                    const animationName = stepActions.find(a => !a.getClip().name.includes('_') && !a.getClip().name.includes('/'))?.getClip().name || stepActions[0]?.getClip().name;
+                    if (animationName) {
+                        window.parent.postMessage({ type: 'animationSelected', name: animationName }, '*');
+                    } else {
+                        console.warn(`Nessun nome valido per l'animazione allo step ${currentIndex}`);
+                    }
+
+                    if (activeAnimationItem) activeAnimationItem.classList.remove('active');
+                    listItems[currentIndex].classList.add('active');
+                    activeAnimationItem = listItems[currentIndex];
+                    listItems[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    while (actionIndex < stepActions.length && stepActions[actionIndex].getClip().name.includes('/')) {
+                        parallelActions.push(stepActions[actionIndex]);
+                        actionIndex++;
+                    }
+                    if (actionIndex === 0 && stepActions.length > 0) {
+                        parallelActions.push(stepActions[0]);
+                        actionIndex++;
+                    }
+
+                    parallelActions.forEach(action => {
+                        action.reset();
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        action.play();
+                    });
+
+                    function playNextSequentialAction() {
+                        if (actionIndex >= stepActions.length) {
+                            currentIndex++;
+                            playNextStep();
+                            return;
+                        }
+
+                        const action = stepActions[actionIndex];
+                        action.reset();
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        action.play();
+
+                        mixer.addEventListener('finished', function onFinished(e) {
+                            if (e.action === action) {
+                                mixer.removeEventListener('finished', onFinished);
+                                actionIndex++;
+                                playNextSequentialAction();
+                            }
+                        });
+                    }
+
+                    let finishedCount = 0;
+                    parallelActions.forEach(action => {
+                        mixer.addEventListener('finished', function onParallelFinished(e) {
+                            if (e.action === action) {
+                                finishedCount++;
+                                mixer.removeEventListener('finished', onParallelFinished);
+                                if (finishedCount === parallelActions.length) {
+                                    playNextSequentialAction();
+                                }
+                            }
+                        });
+                    });
+                }
+                playNextStep();
+            }
+        }
+
+        function highlightPart(part, button, ctrlKey) {
+            if (!model) return;
+
+            if (!ctrlKey) {
+                selectedParts.forEach(p => {
+                    p.traverse(child => {
+                        if (child.isMesh && modifiedMaterials.has(child)) {
+                            child.material = modifiedMaterials.get(child);
+                        } else if (child.isMesh && originalMaterials.has(child)) {
+                            child.material = originalMaterials.get(child);
+                        }
+                    });
+                    buttonMap.get(p).classList.remove('selected');
+                });
+                selectedParts.clear();
+            }
+
+            if (selectedParts.has(part)) {
+                part.traverse(child => {
+                    if (child.isMesh && modifiedMaterials.has(child)) {
+                        child.material = modifiedMaterials.get(child);
+                    } else if (child.isMesh && originalMaterials.has(child)) {
+                        child.material = originalMaterials.get(child);
+                    }
+                });
+                button.classList.remove('selected');
+                selectedParts.delete(part);
+            } else {
+                part.traverse(child => {
+                    if (child.isMesh) {
+                        if (!originalMaterials.has(child)) {
+                            originalMaterials.set(child, child.material.clone());
+                        }
+                        child.material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                        if (modifiedMaterials.has(child)) {
+                            child.material = modifiedMaterials.get(child);
+                        }
+                    }
+                });
+                button.classList.add('selected');
+                selectedParts.add(part);
+            }
+        }
+
+        function toggleVisibility(part, toggleButton) {
+            const isHidden = visibilityMap.get(part) || false;
+            const newState = !isHidden;
+            visibilityMap.set(part, newState);
+
+            part.traverse((child) => {
+                if (child.isMesh) child.visible = !newState;
+            });
+
+            toggleButton.classList.toggle('hidden', newState);
+            toggleButton.textContent = newState ? '👁️‍🗨️' : '👁️';
+        }
+
+        function hideSelectedParts() {
+            selectedParts.forEach(part => {
+                const toggleButton = buttonMap.get(part).nextElementSibling;
+                if (!visibilityMap.get(part)) toggleVisibility(part, toggleButton);
+            });
+            selectedParts.forEach(part => {
+                part.traverse(child => {
+                    if (child.isMesh && modifiedMaterials.has(child)) {
+                        child.material = modifiedMaterials.get(child);
+                    } else if (child.isMesh && originalMaterials.has(child)) {
+                        child.material = originalMaterials.get(child);
+                    }
+                });
+                buttonMap.get(part).classList.remove('selected');
+            });
+            selectedParts.clear();
+        }
+
+        function onMouseClick(event) {
+            event.preventDefault();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(model.children, true);
+            if (intersects.length > 0) {
+                const intersectedObject = intersects[0].object;
+                let parent = intersectedObject;
+                while (parent.parent && parent.parent !== model) parent = parent.parent;
+                if (modelParts.includes(parent)) {
+                    const button = buttonMap.get(parent);
+                    highlightPart(parent, button, event.ctrlKey);
+                }
+            }
+        }
+
+        function zoomToSelection(event) {
+            if (selectedParts.size === 0) return;
+
+            const boundingBox = new THREE.Box3();
+            selectedParts.forEach(part => {
+                const box = new THREE.Box3().setFromObject(part);
+                boundingBox.union(box);
+            });
+
+            const center = boundingBox.getCenter(new THREE.Vector3());
+            const size = boundingBox.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
+
+            camera.position.set(center.x, center.y, center.z + cameraZ);
+            controls.target.copy(center);
+            controls.update();
+        }
+
+        function centerModel() {
+            if (!model) return;
+
+            const boundingBox = new THREE.Box3().setFromObject(model);
+            const center = boundingBox.getCenter(new THREE.Vector3());
+            const size = boundingBox.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            const cameraZ = Math.abs(maxDim / Math.tan(fov / 2)) * 1.2; // Aggiustato per riempire lo spazio visibile
+
+            camera.position.set(center.x, center.y, center.z + cameraZ);
+            controls.target.copy(center);
+            controls.update();
+        }
+
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+            'W037089_An_8.glb',
+            function (gltf) {
+                model = gltf.scene;
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+
+                const animationsMap = {};
+                gltf.animations.forEach(clip => {
+                    const name = clip.name;
+                    const mainStepMatch = name.match(/^Step(\d+(?:\.\d+)?)$/);
+                    const subStepMatch = name.match(/^Step(\d+(?:\.\d+)?)_(\d+)$/);
+                    const parallelStepMatch = name.match(/^Step(\d+(?:\.\d+)?)\/(\d+)$/);
+
+                    if (mainStepMatch) {
+                        const stepKey = mainStepMatch[1];
+                        if (!animationsMap[stepKey]) animationsMap[stepKey] = { main: null, subs: [], parallel: [] };
+                        animationsMap[stepKey].main = clip;
+                    } else if (subStepMatch) {
+                        const stepKey = subStepMatch[1];
+                        const subIndex = parseInt(subStepMatch[2]);
+                        if (!animationsMap[stepKey]) animationsMap[stepKey] = { main: null, subs: [], parallel: [] };
+                        animationsMap[stepKey].subs.push({ clip, index: subIndex });
+                    } else if (parallelStepMatch) {
+                        const stepKey = parallelStepMatch[1];
+                        const parallelIndex = parseInt(parallelStepMatch[2]);
+                        if (!animationsMap[stepKey]) animationsMap[stepKey] = { main: null, subs: [], parallel: [] };
+                        animationsMap[stepKey].parallel.push({ clip, index: parallelIndex });
+                    }
+                });
+
+                const sortedKeys = Object.keys(animationsMap).sort((a, b) => {
+                    const aParts = a.split('.').map(Number);
+                    const bParts = b.split('.').map(Number);
+                    return aParts[0] - bParts[0] || (aParts[1] || 0) - (bParts[1] || 0);
+                });
+                sortedKeys.forEach((stepKey, index) => {
+                    const { main, subs, parallel } = animationsMap[stepKey];
+                    const stepActions = [];
+
+                    if (main) {
+                        const action = mixer.clipAction(main);
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        stepActions.push(action);
+                    }
+
+                    parallel.sort((a, b) => a.index - b.index);
+                    parallel.forEach(par => {
+                        const action = mixer.clipAction(par.clip);
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        stepActions.unshift(action);
+                    });
+
+                    subs.sort((a, b) => a.index - b.index);
+                    subs.forEach(sub => {
+                        const action = mixer.clipAction(sub.clip);
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        stepActions.push(action);
+                    });
+
+                    actions.push(stepActions);
+
+                    if (main) {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = main.name;
+                        listItem.dataset.stepNumber = stepKey + '.';
+                        listItem.addEventListener('click', () => playAnimation(index, listItem));
+                        animationList.appendChild(listItem);
+                    }
+                });
+
+                model.children.forEach((child, index) => {
+                    modelParts.push(child);
+                    const bomItem = document.createElement('div');
+                    bomItem.className = 'bom-item';
+                    const button = document.createElement('button');
+                    button.className = 'bom-button';
+                    const partName = child.name && child.name !== '' ? child.name : `Parte ${index + 1}`;
+                    button.textContent = partName;
+                    button.addEventListener('click', (e) => highlightPart(child, button, e.ctrlKey));
+                    bomItem.appendChild(button);
+                    const visibilityButton = document.createElement('button');
+                    visibilityButton.className = 'visibility-toggle';
+                    visibilityButton.textContent = '👁️';
+                    visibilityButton.addEventListener('click', () => toggleVisibility(child, visibilityButton));
+                    bomItem.appendChild(visibilityButton);
+                    bomList.appendChild(bomItem);
+                    buttonMap.set(child, button);
+                    visibilityMap.set(child, false);
+                });
+
+                document.getElementById('playAllButton').addEventListener('click', playAllAnimationsSequentially);
+                document.getElementById('pauseButton').addEventListener('click', pauseAnimations);
+                document.getElementById('stopButton').addEventListener('click', stopAllAnimations);
+
+                document.getElementById('zoomInButton').addEventListener('click', () => {
+                    if (controls.getDistance() > controls.minDistance) {
+                        camera.position.z -= 0.5;
+                        controls.update();
+                    }
+                });
+                document.getElementById('zoomOutButton').addEventListener('click', () => {
+                    if (controls.getDistance() < controls.maxDistance) {
+                        camera.position.z += 0.5;
+                        controls.update();
+                    }
+                });
+
+                const lightButton = document.getElementById('toggleLightButton');
+                const lightSliderContainer = document.getElementById('lightSliderContainer');
+                const lightSlider = document.getElementById('lightSlider');
+
+                lightButton.addEventListener('click', () => {
+                    lightSliderContainer.style.display = lightSliderContainer.style.display === 'block' ? 'none' : 'block';
+                    updateLightSliderPosition();
+                });
+
+                lightSlider.addEventListener('input', (e) => {
+                    const intensity = parseFloat(e.target.value);
+                    ambientLight.intensity = intensity;
+                    directionalLight.intensity = intensity;
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!lightSliderContainer.contains(e.target) && !lightButton.contains(e.target)) {
+                        lightSliderContainer.style.display = 'none';
+                    }
+                });
+
+                document.getElementById('showAllButton').addEventListener('click', () => {
+                    visibilityMap.forEach((isHidden, part) => {
+                        if (isHidden) toggleVisibility(part, buttonMap.get(part).nextElementSibling);
+                    });
+                });
+
+                document.getElementById('bomSearch').addEventListener('input', (e) => {
+                    const searchText = e.target.value.toLowerCase();
+                    const bomItems = bomList.getElementsByClassName('bom-item');
+                    for (let item of bomItems) {
+                        const button = item.getElementsByClassName('bom-button')[0];
+                        const text = button.textContent.toLowerCase();
+                        item.style.display = text.includes(searchText) ? '' : 'none';
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key.toLowerCase() === 'h' && selectedParts.size > 0) hideSelectedParts();
+                });
+
+                const viewModeSelect = document.getElementById('viewModeSelect');
+                let lastAppliedMode = null;
+
+                viewModeSelect.addEventListener('change', (e) => {
+                    const mode = e.target.value;
+                    const targetObjects = selectedParts.size > 0 ? Array.from(selectedParts) : model.children;
+
+                    if (mode === 'reset') {
+                        model.traverse(child => {
+                            if (child.isMesh && originalMaterials.has(child)) {
+                                child.material = originalMaterials.get(child).clone();
+                                child.visible = true;
+                            }
+                        });
+                        selectedParts.clear();
+                        buttonMap.forEach((button) => button.classList.remove('selected'));
+                        visibilityMap.forEach((_, part) => visibilityMap.set(part, false));
+                        buttonMap.forEach((button, part) => {
+                            const toggleButton = button.nextElementSibling;
+                            toggleButton.classList.remove('hidden');
+                            toggleButton.textContent = '👁️';
+                        });
+                        modifiedMaterials.clear();
+                        viewModeSelect.value = 'solid';
+                        lastAppliedMode = null;
+                        return;
+                    }
+
+                    targetObjects.forEach(part => {
+                        part.traverse(child => {
+                            if (child.isMesh) {
+                                if (!originalMaterials.has(child)) {
+                                    originalMaterials.set(child, child.material.clone());
+                                }
+                                let newMaterial;
+                                if (mode === 'wireframe') {
+                                    newMaterial = new THREE.MeshBasicMaterial({
+                                        color: originalMaterials.get(child).color || 0x000000,
+                                        wireframe: true
+                                    });
+                                } else if (mode === 'transparent') {
+                                    newMaterial = new THREE.MeshStandardMaterial({
+                                        color: originalMaterials.get(child).color || 0x000000,
+                                        transparent: true,
+                                        opacity: 0.5
+                                    });
+                                } else if (mode === 'solid') {
+                                    newMaterial = originalMaterials.get(child).clone();
+                                }
+                                child.material.dispose();
+                                child.material = newMaterial;
+                                modifiedMaterials.set(child, newMaterial);
+                            }
+                        });
+                    });
+                    lastAppliedMode = mode;
+                });
+
+                const themeSelect = document.getElementById('themeSelect');
+                themeSelect.addEventListener('change', (e) => {
+                    const theme = e.target.value;
+                    document.body.classList.toggle('dark-theme', theme === 'dark');
+                    scene.background = new THREE.Color(theme === 'dark' ? 0x1a1a1a : 0xdddddd);
+                });
+
+                window.addEventListener('click', onMouseClick);
+
+                updatePanelPositions();
+                centerModel(); // Centra il modello all'apertura
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% caricato');
+            },
+            function (error) {
+                console.error('Errore durante il caricamento:', error);
+            }
+        );
+
+        document.querySelectorAll('.panel-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const container = header.parentElement.parentElement;
+                container.classList.toggle('collapsed');
+                setTimeout(updatePanelPositions, 300);
+            });
+        });
+
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'playAnimation') playAnimationByName(event.data.name);
+        });
+
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updatePanelPositions();
+            updateLightSliderPosition();
+        });
+    </script>
+</body>
+</html>

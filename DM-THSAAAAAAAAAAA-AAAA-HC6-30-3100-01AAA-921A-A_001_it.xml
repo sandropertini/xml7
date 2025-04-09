@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE dmodule [<!ENTITY % ISOEntities PUBLIC "ISO 8879-1986//ENTITIES ISO Character Entities 20030531//EN//XML" ".\ent\ISOEntities"> %ISOEntities;<!ENTITY ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00026-A-01-1_IT "ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00026-A-01-1_IT.jpg"><!ENTITY ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00069-A-01-1_IT "ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00069-A-01-1_IT.jpg"><!ENTITY ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00070-A-01-1_IT "ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00070-A-01-1_IT.jpg">]><dmodule xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./XMLSCHEMA/dm/procedSchema.xsd">
+	<?Pub Caret1?>
+	<idstatus>
+		<dmaddres>
+			<dmc>
+				<avee>
+					<modelic>THSAAAAAAAAAAA</modelic>
+					<sdc>AAAA</sdc>
+					<chapnum>HC6</chapnum>
+					<section>3</section>
+					<subsect>0</subsect>
+					<subject>3100</subject>
+					<discode>01</discode>
+					<discodev>AAA</discodev>
+					<incode>921</incode>
+					<incodev>A</incodev>
+					<itemloc>A</itemloc>
+				</avee>
+			</dmc>
+			<dmtitle>
+				<techname>Operazioni di Manutenzione del T-Mover</techname>
+				<infoname>Sostituzione di un Finecorsa di Posizione</infoname>
+			</dmtitle>
+			<issno issno="001" type="new"/>
+			<issdate day="30" month="04" year="2014"/>
+			<language country="IT" language="it"/>
+		</dmaddres>
+		<status>
+			<security class="01"/>
+			<rpc>A3121</rpc>
+			<orig>A2309</orig>
+			<applic>
+				<type>THSAAAAAAAAAAA</type>
+				<model model="FREMM">
+					<version version="ALL"/>
+				</model>
+			</applic>
+			<qa><firstver type="tabtop"/><secver type="tabtop"/></qa>
+			<sbc>75211_S03010110_00_P#HGHNAAL</sbc>
+			<sbc>75211_S03010111_00_P#HGHNAAM</sbc>
+			<rfu>Emissione</rfu>
+		</status>
+	</idstatus>
+	<content>
+		<refs>
+			<norefs/>
+		</refs>
+		<proced>
+			<prelreqs>
+				<pmd>
+					<opndurn closeup="" prelreqs="" proced="1,00"/>
+				</pmd>
+				<reqconds>
+					<reqcond>T-Mover spento e disalimentato.</reqcond>
+				</reqconds>
+				<reqpers>
+					<person man="2"/>
+					<perscat category="ELEL"/>
+					<perskill skill="sk03"/>
+				</reqpers>
+				<supequip>
+					<supeqli>
+						<supequi id="sue001" mark="S">
+							<nomen>Chiave maschio esagonale piegate 5mm (Cassetta Standard)</nomen>
+							<identno>
+								<mfc>A5282</mfc>
+								<pnr>021200077_96/SP9_6</pnr>
+							</identno>
+							<qty>1</qty>
+						</supequi>
+						<supequi id="sue002" mark="S">
+							<nomen>Cutter con lama a settori</nomen>
+							<identno>
+								<mfc>A0873</mfc>
+								<pnr>021200077_1771</pnr>
+							</identno>
+							<qty>1</qty>
+						</supequi>
+						<supequi id="sue003" mark="S">
+							<nomen>Giravite lama piatta 3x75 mm (Cassetta standard)</nomen>
+							<identno>
+								<mfc>A0873</mfc>
+								<pnr>021200077_1201_1</pnr>
+							</identno>
+							<qty>1</qty>
+						</supequi>
+						<supequi id="sue004" mark="S">
+							<nomen>Chiave combinata 25x25mm (Beta Utensili 000420025 o equiv.)</nomen>
+							<identno>
+								<mfc>A0873</mfc>
+								<pnr>000420025</pnr>
+							</identno>
+							<qty>1</qty>
+						</supequi>
+						<supequi id="sue005" mark="S">
+							<nomen>Giravite Philips PH0x60mm (Cassetta Standard)</nomen>
+							<identno>
+								<mfc>A0873</mfc>
+								<pnr>021200077_1202_1</pnr>
+							</identno>
+							<qty>1</qty>
+						</supequi>
+					</supeqli>
+				</supequip>
+				<supplies>
+					<supplyli>
+						<supply id="sup001">
+							<nomen>Collari in Nylon 3,6x200 mm</nomen>
+							<identno>
+								<mfc>A0873</mfc>
+								<pnr>1748/8K</pnr>
+							</identno>
+							<qty>6</qty>
+						</supply>
+					</supplyli>
+				</supplies>
+				<spares>
+					<sparesli>
+						<spare id="spa001">
+							<nomen>Finecorsa di Posizione con Cavo L 3 m</nomen>
+							<csnref refcsn="HC630300004A025A"/>
+							<qty>1</qty>
+						</spare>
+					</sparesli>
+				</spares>
+				<safety>
+					<safecond>
+						<warning>
+							<para>
+								Attenersi alle precauzioni di sicurezza generali riportate al para <refdm>
+									<avee>
+										<modelic>THSAAAAAAAAAAA</modelic>
+										<sdc>AAAA</sdc>
+										<chapnum>HC6</chapnum>
+										<section>3</section>
+										<subsect>0</subsect>
+										<subject>0000</subject>
+										<discode>01</discode>
+										<discodev>AAA</discodev>
+										<incode>012</incode>
+										<incodev>A</incodev>
+										<itemloc>A</itemloc>
+									</avee>
+								</refdm>
+							</para>
+						</warning>
+					</safecond>
+				</safety>
+			</prelreqs>
+			<mainfunc>
+				<step1>
+					<para>Rimozione papa></para>
+				</step1>
+				<step1>
+					<para>Rimozione direttore></para>
+				</step1>
+					<step1>
+					<para>Rimozione del <xref xidtype="spares" xrefid="spa001"/></para>
+					<step2>
+						<para>Per mezzo del <xref xidtype="supequip" xrefid="sue005"/>, svitare le viti di fissaggio (<xref xidtype="figure" xrefid="fig002"/> pos. 1) della canalina (<xref xidtype="figure" xrefid="fig002"/> pos. 2) che copre il cavo del Finecorsa (<xref xidtype="figure" xrefid="fig002"/> pos. 3).</para>
+					</step2>
+					<step2>
+						<para>Rimuovere la canalina.</para>
+					</step2>
+					<step2>
+						<para>Per mezzo del <xref xidtype="supequip" xrefid="sue002"/>, tagliare i <xref xidtype="supply" xrefid="sup001"/> che bloccano il cavo, prendendo nota della loro posizione.</para>
+					</step2>
+					
+					<step2>
+						<para>Con le mani, ruotare i due pomelli (<xref xidtype="figure" xrefid="fig001"/> pos. 1) di chiusura del Coperchio con  Pulpito Comandi (<xref xidtype="figure" xrefid="fig001"/> pos. 2).</para>
+					</step2>
+					<step2>
+						<para>Ruotare il coperchio attorno alle cerniere in modo da accedere all'interno del vano elettronica.</para>
+					</step2>						
+					
+					<step2>
+						<para>Individuare i morsetti della morsettiera X2 (<xref xidtype="figure" xrefid="fig003"/>  pos. 1) che fissano i conduttori del cavo:<randlist prefix="pf02">
+								<item>1 e 2 per il cavo del Finecorsa anteriore (conduttori 101 e 102);</item>
+								<item>38 e 39 per il cavo del Finecorsa posteriore (conduttori 111).</item>
+							</randlist>
+						</para>
+					</step2>
+					<step2>
+						<para>Per mezzo del <xref xidtype="supequip" xrefid="sue003"/>, allentare le viti di fissaggio dei conduttori.</para>
+					</step2>
+					<step2>
+						<para>Rimuovere i conduttori dalla morsettiera prendendo nota della loro posizione.</para>
+					</step2>
+					<step2>
+						<para>Per mezzo della <xref xidtype="supequip" xrefid="sue004"/>, allentare il dado del passacavo (<xref xidtype="figure" xrefid="fig002"/> pos. 4) del cavo del Finecorsa interessato</para>
+					</step2>
+					<step2>
+						<para>Sfilare il cavo dal passacavo.</para>
+					</step2>
+					<step2>
+						<para>Per mezzo della <xref xidtype="supequip" xrefid="sue001"/>, svitare le viti di fissaggio del Finecorsa (<xref xidtype="figure" xrefid="fig002"/> pos. 3) al telaio.</para>
+					</step2>
+					<step2>
+						<para>Rimuovere il Finecorsa dal telaio assieme al proprio cavo.</para>
+					</step2>
+				</step1>
+				
+				<step1>
+					<para>Installazione del <xref xidtype="spares" xrefid="spa001"/></para>
+					<step2>
+						<para>Approvvigionare un nuovo <xref xidtype="spares" xrefid="spa001"/>.</para>
+					</step2>
+					<note>
+						<para>Prima di installare un nuovo Finecorsa, accertarsi che sia funzionante.</para>
+					</note>
+					<step2>
+						<para>Inserire il nuovo Finecorsa (<xref xidtype="figure" xrefid="fig002"/> pos. 3) nel suo alloggiamento sul telaio.</para>
+					</step2>
+					<step2>
+						<para>Per mezzo della <xref xidtype="supequip" xrefid="sue001"/>, fissare il Finecorsa al telaio.</para>
+					</step2>
+					<step2>
+						<para>Stendere il cavo del Finecorsa nella canalina (<xref xidtype="figure" xrefid="fig002"/> pos. 2).</para>
+					</step2>
+					<step2>
+						<para>Inserire il cavo del Finecorsa nel passacavo (<xref xidtype="figure" xrefid="fig002"/> pos. 4) del Quadro Elettrico.</para>
+					</step2>
+					<step2>
+						<para>Inserire i conduttori del cavo nei rispettivi morsetti della morsettiera X2 (<xref xidtype="figure" xrefid="fig003"/> pos. 1):<randlist prefix="pf02">
+								<item>1 e 2 per il cavo del sensore anteriore (conduttori 101 e 102);</item>
+								<item>38 e 39 per il cavo del sensoreposteriore (conduttori 111).</item>
+							</randlist>
+						</para>
+					</step2>
+					<step2>
+						<para>Per mezzo del <xref xidtype="supequip" xrefid="sue003"/>, serrare le viti di fissaggio dei conduttori.</para>
+					</step2>
+					<step2>
+						<para>Per mezzo della <xref xidtype="supequip" xrefid="sue004"/>, serrare il dado del passacavo del cavo del Finecorsa interessato.</para>
+					</step2>	
+					
+					<step2>
+						<para>Chiudere il Coperchio con Pulpito Comandi (<xref xidtype="figure" xrefid="fig001"/> pos. 2).</para>
+					</step2>
+					<step2>
+						<para>Con le mani, ruotare i due pomelli (<xref xidtype="figure" xrefid="fig001"/> pos. 1) di chiusura del coperchio.</para>
+					</step2>
+									
+					<step2>
+						<para>Posizionare i nuovi <xref xidtype="supply" xrefid="sup001"/> nella corretta posizione.</para>
+					</step2>
+					<step2>
+						<para>Serrare i <xref xidtype="supply" xrefid="sup001"/> per bloccare il  cavo del Finecorsa.</para>
+					</step2>
+					
+					
+					
+					<step2>
+						<para>Posizionare la canalina che copre il cavo del sensore.</para>
+					</step2>
+					<step2>
+						<para>Per mezzo del <xref xidtype="supequip" xrefid="sue005"/>, avvitare le viti di fissaggio (<xref xidtype="figure" xrefid="fig002"/> pos. 1) della canalina .</para>
+					</step2>
+				</step1>
+				
+				<figure id="fig002">
+					<title>T-Mover - Canaline, Quadro Elettrico e Finecorsa</title>
+					<graphic boardno="ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00069-A-01-1_IT" reproscl="50" xlink:href="ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00069-A-01-1_IT.jpg"/>
+				</figure><figure id="fig001">
+					<title>T-Mover - Assieme Coperchio con Pulpito Comandi</title>
+					<graphic boardno="ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00026-A-01-1_IT" reproscl="50" xlink:href="ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00026-A-01-1_IT.jpg"/>
+				</figure>
+				
+				<figure id="fig003">
+					<title>T-Mover - Morsettiere del Quadro Elettrico</title>
+					<graphic boardno="ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00070-A-01-1_IT" reproscl="50" xlink:href="ICN-THSAAAAAAAAAAA-AAAA-HC6303000-F-A2309-00070-A-01-1_IT.jpg"/>
+				</figure>
+			</mainfunc>
+			<closeup>
+				<noclose/>
+			</closeup>
+		</proced>
+	</content>
+</dmodule><?Pub *0000002135?>

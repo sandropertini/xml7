@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Smontaggio 3D con Procedura</title>
+    <style>
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+        }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #viewer { 
+            width: 60%; 
+            height: 100%; 
+            border: none; 
+            overflow: auto; 
+            min-width: 100px; 
+            background: #ffffff; 
+            transition: width 0.3s ease; 
+        }
+        #resizer {
+            width: 5px;
+            height: 100%;
+            background: #007bff;
+            cursor: pointer;
+            position: relative;
+        }
+        #resizer:hover::after {
+            content: "Trascina per ridimensionare";
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        #procedure { 
+            width: 40%; 
+            height: 100%; 
+            padding: 25px; 
+            overflow-y: auto; 
+            background: #ffffff; 
+            border-left: 2px solid #e0e0e0; 
+            min-width: 100px; 
+            box-sizing: border-box;
+            transition: width 0.3s ease;
+        }
+        #procedure h2 { 
+            font-size: 1.8em; 
+            margin-bottom: 15px; 
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        #procedure p#description { 
+            font-style: italic; 
+            margin-bottom: 20px; 
+            color: #7f8c8d;
+        }
+        details { 
+            margin: 15px 0; 
+            background: #f8f9fa; 
+            border-radius: 6px; 
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        summary { 
+            font-size: 1.3em; 
+            color: #34495e; 
+            cursor: pointer; 
+            padding: 8px; 
+            border-radius: 4px; 
+            transition: background 0.2s ease;
+        }
+        summary:hover { 
+            background: #e9ecef; 
+        }
+        #procedure ol { 
+            padding-left: 25px; 
+        }
+        #procedure ul { 
+            padding-left: 45px; 
+            list-style-type: square;
+        }
+        #procedure li { 
+            margin: 12px 0; 
+            color: #2d3436;
+        }
+        #error { 
+            color: #e74c3c; 
+            font-weight: bold;
+        }
+        .note { 
+            background: #fff3cd; 
+            padding: 12px; 
+            border-left: 5px solid #f1c40f; 
+            margin: 8px 0; 
+            border-radius: 4px;
+        }
+        .warning { 
+            background: #ffebee; 
+            padding: 12px; 
+            border-left: 5px solid #e74c3c; 
+            margin: 8px 0; 
+            border-radius: 4px;
+        }
+        .caution { 
+            background: #fff0e6; 
+            padding: 12px; 
+            border-left: 5px solid #ff9800; 
+            margin: 8px 0; 
+            border-radius: 4px;
+        }
+        .step { 
+            margin: 8px 0; 
+            padding: 10px; 
+            cursor: pointer; 
+            background: #f1f3f5; 
+            border-radius: 4px; 
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        .step:hover { 
+            background: #dfe6e9; 
+            transform: translateX(5px);
+        }
+        .step.active {
+            background: #007bff;
+            color: white;
+            transform: translateX(5px);
+        }
+        .step.active a {
+            color: black;
+        }
+        a { 
+            color: #007bff; 
+            text-decoration: none; 
+        }
+        a:hover { 
+            text-decoration: underline; 
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <iframe id="viewer" src="DM-THSAAAAAAAAAAA-AAAA-HC6-30-3100-01AAA-921A-A_001_it_3D.html"></iframe>
+        <div id="resizer"></div>
+        <div id="procedure">
+            <h2 id="techname">Procedura di Smontaggio</h2>
+            <p id="description"></p>
+            <details>
+                <summary>Attrezzi</summary>
+                <ul id="tools"></ul>
+            </details>
+            <details>
+                <summary>Parti di Ricambio</summary>
+                <ul id="spares"></ul>
+            </details>
+            <details>
+                <summary>Consumabili</summary>
+                <ul id="consumables"></ul>
+            </details>
+            <details open>
+                <summary>Procedura</summary>
+                <div id="steps"></div>
+            </details>
+            <p id="error"></p>
+        </div>
+    </div>
+
+    <script>
+        let iframeReady = false;
+        const iframe = document.getElementById('viewer');
+        iframe.addEventListener('load', () => {
+            iframeReady = true;
+            console.log('Iframe caricato');
+        });
+
+        function highlightStep(stepElement) {
+            console.log(`Evidenziando passo con dataset.stepNumber: ${stepElement.dataset.stepNumber}`);
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            stepElement.classList.add('active');
+            stepElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        fetch('DM-THSAAAAAAAAAAA-AAAA-HC6-30-3100-01AAA-921A-A_001_it.xml')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('File XML non trovato o non accessibile');
+                }
+                return response.text();
+            })
+            .then(data => {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(data, 'text/xml');
+
+                const techname = xmlDoc.getElementsByTagName('techname')[0]?.textContent || 'Nome procedura non disponibile';
+                const infoname = xmlDoc.getElementsByTagName('infoname')[0]?.textContent || 'Descrizione non disponibile';
+                document.getElementById('techname').textContent = techname;
+                document.getElementById('description').textContent = infoname;
+
+                const supequip = {};
+                const supequiNodes = xmlDoc.getElementsByTagName('supequi');
+                for (let supequi of supequiNodes) {
+                    const id = supequi.getAttribute('id');
+                    const nomen = supequi.getElementsByTagName('nomen')[0]?.textContent || 'Strumento non specificato';
+                    const pnr = supequi.getElementsByTagName('pnr')[0]?.textContent || id;
+                    supequip[id] = { nomen, link: `${pnr}.html` };
+                }
+
+                const supplies = {};
+                const supplyNodes = xmlDoc.getElementsByTagName('supply');
+                for (let supply of supplyNodes) {
+                    const id = supply.getAttribute('id');
+                    const nomen = supply.getElementsByTagName('nomen')[0]?.textContent || 'Oggetto non specificato';
+                    const pnr = supply.getElementsByTagName('pnr')[0]?.textContent || id;
+                    supplies[id] = { nomen, link: `${pnr}.html` };
+                }
+
+                const spares = {};
+                const spareNodes = xmlDoc.getElementsByTagName('spare');
+                for (let spare of spareNodes) {
+                    const id = spare.getAttribute('id');
+                    const nomen = spare.getElementsByTagName('nomen')[0]?.textContent || 'Ricambio non specificato';
+                    const csnref = spare.getElementsByTagName('csnref')[0]?.getAttribute('refcsn') || id;
+                    spares[id] = { nomen, link: `${csnref}.html` };
+                }
+
+                function resolveReferences(node) {
+                    let text = '';
+                    for (let child of node.childNodes) {
+                        if (child.nodeType === Node.TEXT_NODE) {
+                            text += child.textContent;
+                        } else if (child.nodeName === 'xref') {
+                            const xrefId = child.getAttribute('xrefid');
+                            const xrefType = child.getAttribute('xidtype');
+                            if (xrefType === 'supequip' && supequip[xrefId]) {
+                                text += `<a href="${supequip[xrefId].link}" target="_blank">${supequip[xrefId].nomen}</a>`;
+                            } else if (xrefType === 'supply' && supplies[xrefId]) {
+                                text += `<a href="${supplies[xrefId].link}" target="_blank">${supplies[xrefId].nomen}</a>`;
+                            } else if (xrefType === 'spares' && spares[xrefId]) {
+                                text += `<a href="${spares[xrefId].link}" target="_blank">${spares[xrefId].nomen}</a>`;
+                            } else if (xrefType === 'figure') {
+                                const parentText = child.parentNode.textContent;
+                                const regex = new RegExp(`\\(\\s*<xref[^>]*xrefid="${xrefId}"[^>]*>\\s*pos\\.\\s*\\d+\\)`, 'g');
+                                if (parentText.match(regex)) {
+                                    return parentText.replace(regex, '').trim();
+                                }
+                            } else {
+                                text += xrefId;
+                            }
+                        } else if (child.nodeName === 'refdm') {
+                            text += '[Riferimento a modulo esterno]';
+                        } else if (child.nodeName === 'randlist') {
+                            const prefix = child.getAttribute('prefix') || '';
+                            const items = Array.from(child.getElementsByTagName('item')).map(item => 
+                                `${prefix ? prefix + ' ' : ''}${resolveReferences(item)}`
+                            );
+                            text += `<ul><li>${items.join('</li><li>')}</li></ul>`;
+                        } else {
+                            text += resolveReferences(child);
+                        }
+                    }
+                    return text.replace(/\s*\(\s*pos\.\s*\d+\)/g, '').trim() || 'Contenuto non disponibile';
+                }
+
+                const stepList = document.getElementById('steps');
+                const toolsList = document.getElementById('tools');
+                const consumablesList = document.getElementById('consumables');
+                const sparesList = document.getElementById('spares');
+                const proced = xmlDoc.getElementsByTagName('proced')[0];
+                if (!proced) {
+                    document.getElementById('error').textContent = 'Nessuna procedura trovata nel file XML';
+                    return;
+                }
+
+                function addItem(container, text, className = '', prefix = '') {
+                    const div = document.createElement('div');
+                    div.className = className;
+                    const finalText = text.replace(/\s*\(\s*pos\.\s*\d+\)/g, '').trim();
+                    div.innerHTML = prefix ? `${prefix} ${finalText}` : finalText;
+                    if (className === 'step') {
+                        const stepNumber = prefix.trim();
+                        div.dataset.stepNumber = stepNumber;
+                        div.addEventListener('click', () => {
+                            console.log(`Cliccato passo: ${stepNumber}`);
+                            highlightStep(div);
+                            const animationName = `Step${stepNumber}`;
+                            if (iframeReady) {
+                                try {
+                                    iframe.contentWindow.postMessage({ type: 'playAnimation', name: animationName }, '*');
+                                    console.log(`Messaggio inviato a iframe: ${animationName}`);
+                                } catch (error) {
+                                    console.error(`Errore nell'invio del messaggio a iframe: ${error}`);
+                                }
+                            } else {
+                                console.log('Iframe non pronto, animazione non avviata');
+                            }
+                        });
+                    }
+                    container.appendChild(div);
+                    return div;
+                }
+
+                const warnings = proced.getElementsByTagName('warning');
+                for (let warning of warnings) {
+                    const para = warning.getElementsByTagName('para')[0];
+                    const text = resolveReferences(para);
+                    addItem(stepList, text, 'warning', 'Avvertimento:');
+                }
+
+                const mainfunc = proced.getElementsByTagName('mainfunc')[0];
+                if (mainfunc) {
+                    const notes = mainfunc.getElementsByTagName('note');
+                    const steps1 = mainfunc.getElementsByTagName('step1');
+
+                    let stepCounter = 1;
+
+                    for (let note of notes) {
+                        const para = note.getElementsByTagName('para')[0];
+                        const text = resolveReferences(para);
+                        addItem(stepList, text, 'note', 'Nota:');
+                    }
+
+                    for (let step1 of steps1) {
+                        const para = step1.getElementsByTagName('para')[0];
+                        const text = resolveReferences(para);
+                        addItem(stepList, text, 'step', `${stepCounter}.`);
+
+                        const steps2 = step1.getElementsByTagName('step2');
+                        let subStepCounter = 1;
+                        for (let step2 of steps2) {
+                            const subPara = step2.getElementsByTagName('para')[0];
+                            const subText = resolveReferences(subPara);
+                            addItem(stepList, subText, 'step', `${stepCounter}.${subStepCounter}.`);
+                            subStepCounter++;
+                        }
+                        stepCounter++;
+                    }
+                }
+
+                for (let id in supequip) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${supequip[id].link}" target="_blank">${supequip[id].nomen}</a>`;
+                    toolsList.appendChild(li);
+                }
+
+                for (let id in spares) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${spares[id].link}" target="_blank">${spares[id].nomen}</a>`;
+                    sparesList.appendChild(li);
+                }
+
+                for (let id in supplies) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${supplies[id].link}" target="_blank">${supplies[id].nomen}</a>`;
+                    consumablesList.appendChild(li);
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                document.getElementById('error').textContent = `Errore nel caricamento del file XML: ${error.message}`;
+            });
+
+        window.addEventListener('message', (e) => {
+            console.log('Messaggio ricevuto dall\'iframe:', e.data); // Debug: verifica il contenuto del messaggio
+            if (e.data && e.data.type === 'animationSelected') {
+                const animationName = e.data.name;
+                if (!animationName) {
+                    console.error('Nome dell\'animazione non fornito nel messaggio');
+                    return;
+                }
+                // Normalizza il stepNumber rimuovendo "Step" e assicurandosi che corrisponda al formato dei passi
+                const stepNumber = animationName.replace('Step', '').replace(/\.+$/, ''); // Rimuove punti finali
+                console.log(`StepNumber estratto: "${stepNumber}"`);
+                
+                const steps = document.querySelectorAll('.step');
+                let found = false;
+                steps.forEach(step => {
+                    const datasetStepNumber = step.dataset.stepNumber.replace(/\.+$/, ''); // Normalizza anche il dataset
+                    console.log(`Confronto: dataset.stepNumber="${datasetStepNumber}" vs stepNumber="${stepNumber}"`);
+                    if (datasetStepNumber === stepNumber) {
+                        highlightStep(step);
+                        found = true;
+                        console.log(`Passo ${stepNumber} trovato ed evidenziato`);
+                    }
+                });
+                if (!found) {
+                    console.log(`Passo ${stepNumber} non trovato tra i passi della procedura`);
+                }
+            } else {
+                console.log('Messaggio ignorato: tipo non valido o dati mancanti');
+            }
+        });
+
+        const viewer = document.getElementById('viewer');
+        const procedure = document.getElementById('procedure');
+        const resizer = document.getElementById('resizer');
+        const container = document.getElementById('container');
+
+        let isDragging = false;
+        let startX;
+        let initialViewerWidthPx;
+
+        function updateWidths(currentX) {
+            const containerWidth = container.offsetWidth;
+            const deltaX = currentX - startX;
+            let newViewerWidthPx = initialViewerWidthPx + deltaX;
+
+            const minWidthPx = containerWidth * 0.1;
+            const maxWidthPx = containerWidth * 0.9;
+            newViewerWidthPx = Math.max(minWidthPx, Math.min(maxWidthPx, newViewerWidthPx));
+
+            const newViewerWidthPercent = (newViewerWidthPx / containerWidth) * 100;
+
+            viewer.style.width = `${newViewerWidthPercent}%`;
+            procedure.style.width = `${100 - newViewerWidthPercent}%`;
+        }
+
+        resizer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            initialViewerWidthPx = viewer.offsetWidth;
+            viewer.style.pointerEvents = 'none';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                updateWidths(e.clientX);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                viewer.style.pointerEvents = 'auto';
+            }
+        });
+
+        window.addEventListener('load', () => {
+            viewer.style.width = '60%';
+            procedure.style.width = '40%';
+        });
+
+        window.addEventListener('resize', () => {
+            const currentViewerPercentage = parseFloat(viewer.style.width) || 60;
+            viewer.style.width = `${currentViewerPercentage}%`;
+            procedure.style.width = `${100 - currentViewerPercentage}%`;
+        });
+    </script>
+</body>
+</html>
