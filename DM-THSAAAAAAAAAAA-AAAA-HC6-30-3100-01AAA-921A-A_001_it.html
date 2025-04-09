@@ -35,11 +35,12 @@
             transition: width 0.3s ease; 
         }
         #resizer {
-            width: 5px;
+            width: 10px; /* Aumentato per touch */
             height: 100%;
             background: #007bff;
             cursor: pointer;
             position: relative;
+            touch-action: none; /* Impedisce scroll/zoom su touch */
         }
         #resizer:hover::after {
             content: "Trascina per ridimensionare";
@@ -382,21 +383,20 @@
             });
 
         window.addEventListener('message', (e) => {
-            console.log('Messaggio ricevuto dall\'iframe:', e.data); // Debug: verifica il contenuto del messaggio
+            console.log('Messaggio ricevuto dall\'iframe:', e.data);
             if (e.data && e.data.type === 'animationSelected') {
                 const animationName = e.data.name;
                 if (!animationName) {
                     console.error('Nome dell\'animazione non fornito nel messaggio');
                     return;
                 }
-                // Normalizza il stepNumber rimuovendo "Step" e assicurandosi che corrisponda al formato dei passi
-                const stepNumber = animationName.replace('Step', '').replace(/\.+$/, ''); // Rimuove punti finali
+                const stepNumber = animationName.replace('Step', '').replace(/\.+$/, '');
                 console.log(`StepNumber estratto: "${stepNumber}"`);
                 
                 const steps = document.querySelectorAll('.step');
                 let found = false;
                 steps.forEach(step => {
-                    const datasetStepNumber = step.dataset.stepNumber.replace(/\.+$/, ''); // Normalizza anche il dataset
+                    const datasetStepNumber = step.dataset.stepNumber.replace(/\.+$/, '');
                     console.log(`Confronto: dataset.stepNumber="${datasetStepNumber}" vs stepNumber="${stepNumber}"`);
                     if (datasetStepNumber === stepNumber) {
                         highlightStep(step);
@@ -436,6 +436,7 @@
             procedure.style.width = `${100 - newViewerWidthPercent}%`;
         }
 
+        // Mouse events
         resizer.addEventListener('mousedown', (e) => {
             isDragging = true;
             startX = e.clientX;
@@ -451,6 +452,29 @@
         });
 
         document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                viewer.style.pointerEvents = 'auto';
+            }
+        });
+
+        // Touch events
+        resizer.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            initialViewerWidthPx = viewer.offsetWidth;
+            viewer.style.pointerEvents = 'none';
+            e.preventDefault();
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                updateWidths(e.touches[0].clientX);
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('touchend', () => {
             if (isDragging) {
                 isDragging = false;
                 viewer.style.pointerEvents = 'auto';
